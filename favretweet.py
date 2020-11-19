@@ -22,9 +22,12 @@ class FavRetweetListener(tweepy.StreamListener):
             url = 'https://maslabook.herokuapp.com/api/bot'
             payload = {'password': config('COUNTER_PW')}
             headers = {'content-type': 'application/json'}
-            tuit = requests.post(url, data=json.dumps(payload), headers=headers)
-            print(tuit.json())
-            self.api.update_status(tuit.json())
+            try:
+                tuit = requests.post(url, data=json.dumps(payload), headers=headers)
+                print(tuit.json())
+                self.api.update_status(tuit.json())
+            except:
+                print("Algo falló")
             
             friends_names = []
             for friend in api.friends():
