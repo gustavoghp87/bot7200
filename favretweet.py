@@ -6,7 +6,7 @@ from config import create_api
 import time
 import json
 from decouple import config
-import pymongo
+# import pymongo
 
 
 logging.basicConfig(level=logging.INFO)
@@ -18,24 +18,21 @@ class FavRetweetListener(tweepy.StreamListener):
         self.me = api.me()
         starttime = time.time()
 
-        connect = config('ATLAS_DB')
-        myclient = pymongo.MongoClient(connect)
-        mydb = myclient["bots"]
-        mycol = mydb["bot7200"]
+        #connect = config('ATLAS_DB')
+        #myclient = pymongo.MongoClient(connect)
+        #mydb = myclient["bots"]
+        #mycol = mydb["bot7200"]
 
         while True:
-            myJson = {}
             print(f"tick, son las {time.asctime(time.localtime(time.time()))}")
-            myJson["time"] = f"{time.asctime(time.localtime(time.time()))}"
             
             url = 'https://maslabook.herokuapp.com/api/bot'
             payload = {'password': config('COUNTER_PW')}
             headers = {'content-type': 'application/json'}
-            
             tuit = requests.post(url, data=json.dumps(payload), headers=headers)
+
             print(tuit.json())
             self.api.update_status(tuit.json())
-            myJson["tuit"] = f"{(tuit.json())[0:50]}"
             
             friends_names = []
             for friend in api.friends():
@@ -49,12 +46,9 @@ class FavRetweetListener(tweepy.StreamListener):
                         follower.follow()
                         api.create_mute(follower.screen_name)
                         print (f"Siguiendo a {follower.screen_name}, silenciado")
-                        #myJson["follows"] = f"Siguiendo a {follower.screen_name}"
                     except:
                         print("\n")
-                        #myJson["error"] = "error"
-
-            mycol.insert_one(myJson)
+            
             loop = 7200
             time.sleep(loop - ((time.time() - starttime) % loop))
 
