@@ -49,7 +49,7 @@ class FavRetweetListener(tweepy.StreamListener):
                     except:
                         print("\n")
             
-            loop = 7200
+            loop = 7200*3
             time.sleep(loop - ((time.time() - starttime) % loop))
 
     def on_error(self, status):
