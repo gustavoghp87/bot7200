@@ -4,4 +4,5 @@ Twitter bot in Python that requests a tweet to Atlas DB throught maslabook.com a
 Running on Docker in Raspberry Pi
 
 
-docker run -d --restart always --name frank -v ~/bot7200/frank-tv/:/bots/:ro frank-i
+docker run -d --restart always --name frank -v ~/bot7200/frank-tv/:/bots/ frank-i
+docker run -d --restart always --name frank-fav frank-fav-i
