@@ -7,7 +7,6 @@ COPY config.py /bots/
 COPY favretweet.py /bots/
 COPY requirements.txt /tmp
 COPY .env /bots/
-COPY storage.json /bots/
 
 RUN pip3 install -r /tmp/requirements.txt
 

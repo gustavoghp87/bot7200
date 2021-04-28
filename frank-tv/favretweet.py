@@ -50,7 +50,7 @@ class FavRetweetListener(tweepy.StreamListener):
             #     c.close()
 
 
-            conn = sqlite3.connect('db/frank.db')
+            conn = sqlite3.connect('frank.db')
             conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
             cursor.execute('''SELECT * FROM nextTweet''')
@@ -66,7 +66,7 @@ class FavRetweetListener(tweepy.StreamListener):
             cursor.close()
 
 
-            tuit = f" {data['objects'][tuitNumber-1]['text']}         (https://www.youtube.com/watch?v={data['objects'][tuitNumber-1]['videoIdYT']}) https://twitter.com/FrankSuarezTv/status/{data['objects'][tuitNumber-1]['videoIdTW']}/video/1"
+            tuit = f" {data['objects'][tuitNumber-1]['text']}                                                 (https://www.youtube.com/watch?v={data['objects'][tuitNumber-1]['videoIdYT']}) https://twitter.com/FrankSuarezTv/status/{data['objects'][tuitNumber-1]['videoIdTW']}/video/1"
             
             try:
                 print("Tuiteando:", tuit)
