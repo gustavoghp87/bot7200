@@ -62,7 +62,7 @@ class FavRetweetListener(tweepy.StreamListener):
 
 
 def main():
-    keywords = ["franksuarez", "metabolismotv", "metabolismo", "metabolism", "Metabolism", "diabetes"]
+    keywords = ["franksuarez", "metabolismotv", "metabolismo", "diabetes", "diabético", "diabética"]
     try:
         api = create_api()
         tweets_listener = FavRetweetListener(api)

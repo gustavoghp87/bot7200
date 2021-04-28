@@ -14,21 +14,26 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
 
 class FavRetweetListener(tweepy.StreamListener):
-    def __init__(self, api):
-        self.api = api
-        self.me = api.me()
-        starttime = time.time()
 
+    data = {}
+
+    def readStorage():
         with open('storage.json', encoding='utf-8') as json_file:
             data = json.load(json_file)
             for p in data['objects']:
                 print(f"Id: {p['id']}")
-                print('Text: ' + p['text'])
-                print('VideoIdTW: ' + p['videoIdTW'])
-                print('VideoIdYT: ' + p['videoIdYT'])
+                #print('Text: ' + p['text'])
+                #print('VideoIdTW: ' + p['videoIdTW'])
+                #print('VideoIdYT: ' + p['videoIdYT'])
                 print('')
+
+    def __init__(self, api):
+        self.api = api
+        self.me = api.me()
+        starttime = time.time()
+        readStorage()
         
-        print("###############################################################################################################\n\n")
+        print("\n\n###############################################################################################################\n\n")
 
         while True:
             print(f"tick, son las {time.asctime(time.localtime(time.time()))}")
@@ -44,20 +49,18 @@ class FavRetweetListener(tweepy.StreamListener):
             #     conn.commit()
             #     c.close()
 
+
             conn = sqlite3.connect('db/frank.db')
             conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
             cursor.execute('''SELECT * FROM nextTweet''')
             id, tuitNumber = cursor.fetchone()
-            print(id, tuitNumber)
-
+            print("Going to tweet:", id, tuitNumber)
             if tuitNumber < len(data['objects']):
                 nextTuitNumber = tuitNumber + 1
             else:
                 nextTuitNumber = 1
-
             print("Next:", nextTuitNumber)
-            
             cursor.execute(f"""UPDATE nextTweet SET tuitNumber = {nextTuitNumber} WHERE id = 1""")
             conn.commit()
             cursor.close()
@@ -80,16 +83,20 @@ class FavRetweetListener(tweepy.StreamListener):
             
             friends_names = []
             for friend in api.friends():
-                friends_names.append(friend.screen_name)
+                try:
+                    friends_names.append(friend.screen_name)
+                    api.create_mute(friend.screen_name)
+                except Exception as e:
+                    print("Error muteando a", friend.screen_name, e)
 
             for follower in api.followers():
                 if follower.screen_name not in friends_names:
                     try:
                         follower.follow()
-                        api.create_mute(follower.screen_name)
+                        # api.create_mute(follower.screen_name)
                         print (f"Siguiendo a {follower.screen_name}, silenciado")
                     except:
-                        print("\n")
+                        print("\nFalla siguiendo a", follower.screen_name)
             
 
             loop = 60*60*8
