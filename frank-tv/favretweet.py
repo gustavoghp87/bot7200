@@ -67,7 +67,7 @@ class FavRetweetListener(tweepy.StreamListener):
             
             try:
                 print("Tuiteando:", tuit)
-                #self.api.update_status(tuit)
+                self.api.update_status(tuit)
 
             except AssertionError as error:
                 print("Error", error)
@@ -78,21 +78,21 @@ class FavRetweetListener(tweepy.StreamListener):
 
 
             
-            # friends_names = []
-            # for friend in api.friends():
-            #     friends_names.append(friend.screen_name)
+            friends_names = []
+            for friend in api.friends():
+                friends_names.append(friend.screen_name)
 
-            # for follower in api.followers():
-            #     if follower.screen_name not in friends_names:
-            #         try:
-            #             follower.follow()
-            #             api.create_mute(follower.screen_name)
-            #             print (f"Siguiendo a {follower.screen_name}, silenciado")
-            #         except:
-            #             print("\n")
+            for follower in api.followers():
+                if follower.screen_name not in friends_names:
+                    try:
+                        follower.follow()
+                        api.create_mute(follower.screen_name)
+                        print (f"Siguiendo a {follower.screen_name}, silenciado")
+                    except:
+                        print("\n")
             
 
-            loop = 4
+            loop = 60*60*8
             time.sleep(loop - ((time.time() - starttime) % loop))
 
     def on_error(self, status):

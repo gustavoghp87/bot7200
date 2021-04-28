@@ -2,12 +2,13 @@ from logging import log
 import tweepy
 import logging
 from config import create_api
-
+import time
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
 
 class FavRetweetListener(tweepy.StreamListener):
+
     def __init__(self, api):
         self.api = api
         self.me = api.me()
@@ -28,7 +29,9 @@ class FavRetweetListener(tweepy.StreamListener):
                 id = str(tweet).split("id': ")[1].split(',')[0]
                 print(f"\n\nFaveado tuit {id} de @{user}")
             except Exception as e:
-                print("Ya faveado")
+                print("Error faveando:", e)
+        else:
+            print("Ya faveado")
 
             # try:
             #     text = str(tweet).split("text': '")[1].split("'")[0]
@@ -59,11 +62,16 @@ class FavRetweetListener(tweepy.StreamListener):
 
 
 def main():
-    api = create_api()
-    keywords = ["frank suarez", "frank suárez", "Frank Suárez", "metabolismo tv", "metabolismotv", "metabolism", "Metabolism", "diabetes"]
-    tweets_listener = FavRetweetListener(api)
-    stream = tweepy.Stream(api.auth, tweets_listener)
-    stream.filter(track=keywords, languages=["es", "en"])
+    keywords = ["franksuarez", "metabolismotv", "metabolismo", "metabolism", "Metabolism", "diabetes"]
+    try:
+        api = create_api()
+        tweets_listener = FavRetweetListener(api)
+        stream = tweepy.Stream(api.auth, tweets_listener)
+        stream.filter(track=keywords, languages=["es"])
+    except Exception as e:
+        print("Falló app:", e)
+        time.sleep(36000)
+        main()
 
 if __name__ == "__main__":
     main()
