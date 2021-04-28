@@ -15,27 +15,22 @@ logger = logging.getLogger()
 
 class FavRetweetListener(tweepy.StreamListener):
 
-    data = {}
-
-    def readStorage():
-        with open('storage.json', encoding='utf-8') as json_file:
-            data = json.load(json_file)
-            for p in data['objects']:
-                print(f"Id: {p['id']}")
-                #print('Text: ' + p['text'])
-                #print('VideoIdTW: ' + p['videoIdTW'])
-                #print('VideoIdYT: ' + p['videoIdYT'])
-                print('')
-
     def __init__(self, api):
         self.api = api
         self.me = api.me()
         starttime = time.time()
-        readStorage()
         
-        print("\n\n###############################################################################################################\n\n")
-
         while True:
+            with open('storage.json', encoding='utf-8') as json_file:
+                data = json.load(json_file)
+                for p in data['objects']:
+                    print(f"Id: {p['id']}")
+                    #print('Text: ' + p['text'])
+                    #print('VideoIdTW: ' + p['videoIdTW'])
+                    #print('VideoIdYT: ' + p['videoIdYT'])
+                    print('')
+            
+            print("\n\n###############################################################################################################\n\n")
             print(f"tick, son las {time.asctime(time.localtime(time.time()))}")
 
             # if not os.path.exists('db'):
