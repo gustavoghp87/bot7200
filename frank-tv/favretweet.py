@@ -78,17 +78,17 @@ class FavRetweetListener(tweepy.StreamListener):
             
             friends_names = []
             for friend in api.friends():
-                try:
-                    friends_names.append(friend.screen_name)
-                    api.create_mute(friend.screen_name)
-                except Exception as e:
-                    print("Error muteando a", friend.screen_name, e)
+                #try:
+                friends_names.append(friend.screen_name)
+                    #api.create_mute(friend.screen_name)
+                #except Exception as e:
+                    #print("Error muteando a", friend.screen_name, e)
 
             for follower in api.followers():
                 if follower.screen_name not in friends_names:
                     try:
                         follower.follow()
-                        # api.create_mute(follower.screen_name)
+                        api.create_mute(follower.screen_name)
                         print (f"Siguiendo a {follower.screen_name}, silenciado")
                     except:
                         print("\nFalla siguiendo a", follower.screen_name)
