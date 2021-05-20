@@ -61,8 +61,9 @@ class FavRetweetListener(tweepy.StreamListener):
             cursor.close()
 
 
-            tuit = f" {data['objects'][tuitNumber-1]['text']}                                                 (https://www.youtube.com/watch?v={data['objects'][tuitNumber-1]['videoIdYT']}) https://twitter.com/FrankSuarezTv/status/{data['objects'][tuitNumber-1]['videoIdTW']}/video/1"
-            
+            #tuit = f" {data['objects'][tuitNumber-1]['text']}                                                 (https://www.youtube.com/watch?v={data['objects'][tuitNumber-1]['videoIdYT']}) https://twitter.com/FrankSuarezTv/status/{data['objects'][tuitNumber-1]['videoIdTW']}/video/1"
+            tuit = f" {data['objects'][tuitNumber-1]['text']} https://twitter.com/FrankSuarezTv/status/{data['objects'][tuitNumber-1]['videoIdTW']}/video/1"
+
             try:
                 print("Tuiteando:", tuit)
                 self.api.update_status(tuit)
