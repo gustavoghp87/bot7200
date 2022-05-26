@@ -21,5 +21,5 @@ def create_api():
     return api
 
 def get_storage_url():
-    # return config("storage_url")
-    return ''
+    return config("storage_url")
+

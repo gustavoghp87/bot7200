@@ -1,5 +1,6 @@
 import json
 import logging
+import requests
 import sqlite3
 import time
 import tweepy
@@ -84,8 +85,9 @@ class FrankTvBot(tweepy.StreamListener):
             print("\n--- On status error:", e, "---\n")
 
     def update_params(self):
-        with open(self.get_storage(), encoding='utf-8') as json_file:
-            self.data = json.load(json_file)
+        # with open(self.get_storage(), encoding='utf-8') as json_file:
+        #     self.data = json.load(json_file)
+        self.data = self.get_storage()
         print(f"\n--- Updating params ---\n")
         try:
             conn = sqlite3.connect('frank.db')     # execute('''CREATE TABLE frankData(id int, tweetNumber int)''')
@@ -148,13 +150,16 @@ class FrankTvBot(tweepy.StreamListener):
         self.logger.error(status)
         
     def get_storage(self):
-        url = get_storage_url()
-        # response = requests.get(url)
-        # print(response.json())
-        # response.raise_for_status()      # raises exception when not a 2xx response
-        # if response.status_code != 204:
-        #     return response.json()
-        return 'storage.json'
+        try:
+            url = get_storage_url()
+            response = requests.get(url)
+            response.raise_for_status()
+            return response.json()
+        except Exception as e:
+            print(f"\n--- Method get_storage failed: {e} ---\n")
+            time.sleep(60)
+            self.launch_or_sleep()
+            return
 
 def main():
     keywords = ["FrankSuarezTv"]
@@ -165,8 +170,9 @@ def main():
         stream.filter(track=keywords, languages=["es", "en"])
     except Exception as e:
         print("App failed:", e)
-        time.sleep(600)
+        time.sleep(60)
         main()
+        return
 
 if __name__ == "__main__":
     main()
