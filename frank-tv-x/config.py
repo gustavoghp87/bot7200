@@ -1,5 +1,5 @@
-import tweepy
 import logging
+import tweepy
 from decouple import config
 
 logger = logging.getLogger()
@@ -19,3 +19,7 @@ def create_api():
         raise e
     logger.info("API created")
     return api
+
+def get_storage_url():
+    # return config("storage_url")
+    return ''
