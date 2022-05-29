@@ -46,7 +46,7 @@ class FrankTvBot(tweepy.StreamListener):
             self.api.update_status(tweet)
         else:
             print("--- Tweet reply ---\n")
-            self.api.update_status(status = tweet, in_reply_to_status_id = self.tweetToReplyId , auto_populate_reply_metadata=True)
+            self.api.update_status(status=tweet, in_reply_to_status_id=self.tweetToReplyId, auto_populate_reply_metadata=True)
         print("Done")
         self.update_db(False)
     

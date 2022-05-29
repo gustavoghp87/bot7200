@@ -10,8 +10,6 @@ COPY .env /bots/
 
 RUN pip3 install -r /tmp/requirements.txt
 
-VOLUME . /bots/
-
 WORKDIR /bots
 
 CMD ["python3", "main.py"]
