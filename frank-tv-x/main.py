@@ -1,4 +1,3 @@
-import json
 import logging
 import requests
 import sqlite3
@@ -23,6 +22,7 @@ class FrankTvBot(tweepy.StreamListener):
         self.nextIsLastOfSerie = None
         self.tweetToReplyId = None
         self.tweetNumber = None
+        self.timeToNextTweet = None
         self.data = None
         self.update_params()
         self.launch_or_sleep()
@@ -46,7 +46,7 @@ class FrankTvBot(tweepy.StreamListener):
             self.api.update_status(tweet)
         else:
             print("--- Tweet reply ---\n")
-            self.api.update_status(status = tweet, in_reply_to_status_id = self.tweetToReplyId , auto_populate_reply_metadata = True)
+            self.api.update_status(status = tweet, in_reply_to_status_id = self.tweetToReplyId , auto_populate_reply_metadata=True)
         print("Done")
         self.update_db(False)
     
@@ -63,14 +63,13 @@ class FrankTvBot(tweepy.StreamListener):
             if user_id != me_id:
                 print("\n--- This tweet is not mine ---\n")
                 return
-            # if 'RT @FrankSuarezTv:' in text:
-            #     print("\n--- It's not the video to reply to ---\n")
-            #     return
+            if 'RT @FrankSuarezTv:' in text:
+                print("\n--- It's a RT ---\n")
+                return
             if 'https://twitter.com/FrankSuarezTv/status/' not in text and 'https://t.co/' not in text:
                 print("\n--- It's not a video serie ---\n")
                 return
             self.update_params()
-            print(self.lastTitle)
             if self.lastTitle not in text:
                 print("\n--- It's not the video to reply ---\n")
                 return
@@ -85,28 +84,20 @@ class FrankTvBot(tweepy.StreamListener):
             print("\n--- On status error:", e, "---\n")
 
     def update_params(self):
-        # with open(self.get_storage(), encoding='utf-8') as json_file:
-        #     self.data = json.load(json_file)
         self.data = self.get_storage()
         print(f"\n--- Updating params ---\n")
-        try:
-            conn = sqlite3.connect('frank.db')     # execute('''CREATE TABLE frankData(id int, tweetNumber int)''')
-            conn.row_factory = sqlite3.Row
-            cursor = conn.cursor()
-            cursor.execute('''SELECT * FROM frankData''')
-            id, tweetNumber, nextTweetTimestamp, tweetToReplyId = cursor.fetchone()   # int, int, int, str
-            self.tweetNumber = tweetNumber
-            self.nextTweetTimestamp = nextTweetTimestamp
-            self.tweetToReplyId = tweetToReplyId
-        except Exception as e:
-            print("\n---", e, "---\n")
-            try:
-                cursor.execute(''' INSERT INTO frankData(tweetNumber, tweetToReplyId, nextTweetTimestamp) VALUES (?,?,?) ''', (1, 0, 0))
-                conn.commit()
-            except Exception as ex:
-                print("\n---", ex, "---\n")
-        finally:
-            cursor.close()
+        conn = sqlite3.connect('frank.db')
+        # execute('''CREATE TABLE frankData(id int, tweetNumber int)''')
+        #cursor.execute(''' INSERT INTO frankData(tweetNumber, tweetToReplyId, nextTweetTimestamp, self.timeToNextTweet) VALUES (?,?,?,?) ''', (1, 0, 0, 28795))
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute('''SELECT * FROM frankData''')
+        id, tweetNumber, nextTweetTimestamp, tweetToReplyId, timeToNextTweet = cursor.fetchone()   # int, int, int, str, int
+        self.tweetNumber = tweetNumber
+        self.nextTweetTimestamp = nextTweetTimestamp
+        self.tweetToReplyId = tweetToReplyId
+        self.timeToNextTweet = timeToNextTweet
+        cursor.close()
         if self.nextTweetTimestamp is None:
             self.nextTweetTimestamp = int(round(time.time(), 0))
         if self.tweetNumber is None or self.tweetNumber == 0:
@@ -119,47 +110,39 @@ class FrankTvBot(tweepy.StreamListener):
         else:
             self.nextIsLastOfSerie = self.data['objects'][self.tweetNumber-2]['isTheLastOne']
             self.lastTitle = self.data['objects'][self.tweetNumber-2]['text']
+        if self.timeToNextTweet is None or self.timeToNextTweet == 0:
+            self.timeToNextTweet = 28794    # 8hs
         print("\n--- Updated data from db:", self.tweetNumber, self.nextTweetTimestamp, self.tweetToReplyId, self.currentIsFirstOfSerie, self.nextIsLastOfSerie, "---\n")
     
     def update_db(self, savingTweetToReplyId):
-        try:
-            print(f"\n--- Updating db ---\n")
-            conn = sqlite3.connect('frank.db')
-            conn.row_factory = sqlite3.Row
-            cursor = conn.cursor()
-            if savingTweetToReplyId == True:
-                print(f"\n--- Saving tweet to reply id {self.tweetToReplyId} in db ---\n")
-                cursor.execute('''UPDATE frankData SET tweetToReplyId = ? WHERE id = ? ''', (self.tweetToReplyId, 1))
+        print(f"\n--- Updating db ---\n")
+        conn = sqlite3.connect('frank.db')
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        if savingTweetToReplyId == True:
+            print(f"\n--- Saving tweet to reply id {self.tweetToReplyId} in db ---\n")
+            cursor.execute('''UPDATE frankData SET tweetToReplyId = ? WHERE id = ? ''', (self.tweetToReplyId, 1))
+        else:
+            if self.tweetNumber == len(self.data['objects']):
+                self.tweetNumber = 1
             else:
-                if self.tweetNumber == len(self.data['objects']):
-                    self.tweetNumber = 1
-                else:
-                    self.tweetNumber = self.tweetNumber + 1
-                self.nextTweetTimestamp = int(round(time.time(), 0)) + 300     # 8 hs = 28800 - 5
-                cursor.execute('''UPDATE frankData SET tweetNumber = ? WHERE id = ? ''', (self.tweetNumber, 1))
-                cursor.execute('''UPDATE frankData SET nextTweetTimestamp = ? WHERE id = ? ''', (self.nextTweetTimestamp, 1))
-            conn.commit()
-        except Exception as e:
-            print("\n--- Error updating params in db:", e, " ---\n")
-            time.sleep(60)
-            self.update_db(savingTweetToReplyId)
-        finally:
-            cursor.close()
+                self.tweetNumber = self.tweetNumber + 1
+            self.nextTweetTimestamp = int(round(time.time(), 0)) + self.timeToNextTweet
+            cursor.execute('''UPDATE frankData SET tweetNumber = ? WHERE id = ? ''', (self.tweetNumber, 1))
+            cursor.execute('''UPDATE frankData SET nextTweetTimestamp = ? WHERE id = ? ''', (self.nextTweetTimestamp, 1))
+        conn.commit()
+        cursor.close()
 
     def on_error(self, status):
         self.logger.error(status)
         
     def get_storage(self):
-        try:
-            url = get_storage_url()
-            response = requests.get(url)
-            response.raise_for_status()
-            return response.json()
-        except Exception as e:
-            print(f"\n--- Method get_storage failed: {e} ---\n")
-            time.sleep(60)
-            self.launch_or_sleep()
-            return
+        url = get_storage_url()
+        # with open(url, encoding='utf-8') as json_file:
+        #     self.data = json.load(json_file)
+        response = requests.get(url)
+        response.raise_for_status()
+        return response.json()
 
 def main():
     keywords = ["FrankSuarezTv"]
