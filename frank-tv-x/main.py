@@ -1,4 +1,3 @@
-import logging
 import requests
 import sqlite3
 import time
@@ -7,9 +6,6 @@ from config import create_api
 from config import get_storage_url
 
 class FrankTvBot(tweepy.StreamListener):
-    
-    logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger()
     
     def __init__(self, api):
         print(f"\n--- Starting at {time.asctime(time.localtime(time.time()))} ---\n")
@@ -47,7 +43,7 @@ class FrankTvBot(tweepy.StreamListener):
         else:
             print("--- Tweet reply ---\n")
             self.api.update_status(status=tweet, in_reply_to_status_id=self.tweetToReplyId, auto_populate_reply_metadata=True)
-        print("Done")
+        print("    Done")
         self.update_db(False)
     
     def on_status(self, tweet):
@@ -57,7 +53,7 @@ class FrankTvBot(tweepy.StreamListener):
             tweet_id = tweet.id
             status = self.api.get_status(tweet_id)
             text = status.text
-            self.logger.info(f"\n\n\n\n\n\n\n\n\n #########################################################################\n\n--- PROCESSING TWEET ---\n")
+            print(f"\n\n\n\n\n\n\n\n\n #########################################################################\n\n--- PROCESSING TWEET ---\n")
             print(me_id, user_id, tweet_id)
             print(text)
             if user_id != me_id:
@@ -115,7 +111,7 @@ class FrankTvBot(tweepy.StreamListener):
         print("\n--- Updated data from db:", self.tweetNumber, self.nextTweetTimestamp, self.tweetToReplyId, self.currentIsFirstOfSerie, self.nextIsLastOfSerie, "---\n")
     
     def update_db(self, savingTweetToReplyId):
-        print(f"\n--- Updating db ---\n")
+        print(f"\n--- Updating db ({str(savingTweetToReplyId)}) ---\n")
         conn = sqlite3.connect('frank.db')
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
@@ -128,13 +124,14 @@ class FrankTvBot(tweepy.StreamListener):
             else:
                 self.tweetNumber = self.tweetNumber + 1
             self.nextTweetTimestamp = int(round(time.time(), 0)) + self.timeToNextTweet
+            print(f"\n--- Saving next tweet number {self.tweetNumber} and next tweet timestamp {self.nextTweetTimestamp} in db ---\n")
             cursor.execute('''UPDATE frankData SET tweetNumber = ? WHERE id = ? ''', (self.tweetNumber, 1))
             cursor.execute('''UPDATE frankData SET nextTweetTimestamp = ? WHERE id = ? ''', (self.nextTweetTimestamp, 1))
         conn.commit()
         cursor.close()
 
     def on_error(self, status):
-        self.logger.error(status)
+        print(f"\n--- ERROR: {status} ---\n")
         
     def get_storage(self):
         url = get_storage_url()
