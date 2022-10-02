@@ -9,7 +9,6 @@ docker run -d --restart always --name frank -v ~/bot7200/frank-tv/:/bots/ frank-
 docker build -t frank-fav-i .
 docker run -d --restart always --name frank-fav frank-fav-i
 
-frank-tv-x:
- docker build -t frank-x-image .
- docker run -d --restart always --name frank -v ~/bot7200/frank-tv/:/bots/ frank-x-image
+docker build -t frank-x-image .
+docker run -d --restart always --name frank-x -v ~/bot7200/frank-tv-x/:/bots/ frank-x-image
  

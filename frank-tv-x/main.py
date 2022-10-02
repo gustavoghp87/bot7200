@@ -45,6 +45,14 @@ class FrankTvBot(tweepy.StreamListener):
             self.api.update_status(status=tweet, in_reply_to_status_id=self.tweetToReplyId, auto_populate_reply_metadata=True)
         print("    Done")
         self.update_db(False)
+        
+    def launch_last_tweet(self, lastTweetId):
+        yt_id = self.data['objects'][self.tweetNumber-1]['videoIdTW']
+        if yt_id == None:
+            return
+        video_url = f"https://www.youtube.com/watch?v={yt_id}"
+        tweet = f"Video completo: {video_url}"
+        self.api.update_status(status=tweet, in_reply_to_status_id=lastTweetId, auto_populate_reply_metadata=True)
     
     def on_status(self, tweet):
         try:
@@ -53,23 +61,28 @@ class FrankTvBot(tweepy.StreamListener):
             tweet_id = tweet.id
             status = self.api.get_status(tweet_id)
             text = status.text
-            print(f"\n\n\n\n\n\n\n\n\n #########################################################################\n\n--- PROCESSING TWEET ---\n")
-            print(me_id, user_id, tweet_id)
-            print(text)
             if user_id != me_id:
-                print("\n--- This tweet is not mine ---\n")
+                #print("\n--- This tweet is not mine ---\n")
                 return
             if 'RT @FrankSuarezTv:' in text:
-                print("\n--- It's a RT ---\n")
+                #print("\n--- It's a RT ---\n")
                 return
             if 'https://twitter.com/FrankSuarezTv/status/' not in text and 'https://t.co/' not in text:
                 print("\n--- It's not a video serie ---\n")
                 return
+            if 'Video completo:' in text:
+                return
+            ########################################
+            print(f"\n\n\n\n\n\n\n\n\n #########################################################################\n\n--- PROCESSING TWEET ---\n")
+            print(me_id, user_id, tweet_id)
+            print(text)
             self.update_params()
             if self.lastTitle not in text:
-                print("\n--- It's not the video to reply ---\n")
+                print("\n--- It's not the video to reply to ---\n")
                 return
             print("\n--- Sending tweet... ---\n")
+            if '(2/2)' in text or '(3/3)' in text or '(4/4)' in text or '(15/15)' in text:
+                self.launch_last_tweet(self, tweet_id)
             if self.nextIsLastOfSerie == True:
                 self.tweetToReplyId = 0
             else:
@@ -147,7 +160,7 @@ def main():
         api = create_api()
         tweets_listener = FrankTvBot(api)
         stream = tweepy.Stream(api.auth, tweets_listener)
-        stream.filter(track=keywords, languages=["es", "en"])
+        stream.filter(track=keywords, languages=["es", "en"], stall_warnings=True)
     except Exception as e:
         print("App failed:", e)
         time.sleep(60)
