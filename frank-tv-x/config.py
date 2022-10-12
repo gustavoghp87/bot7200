@@ -5,10 +5,10 @@ from decouple import config
 logger = logging.getLogger()
 
 def create_api():
-    consumer_key = config("api_public")
-    consumer_secret = config("api_secret")
-    access_token = config("token_public")
-    access_token_secret = config("token_secret")
+    consumer_key = config('api_public')
+    consumer_secret = config('api_secret')
+    access_token = config('token_public')
+    access_token_secret = config('token_secret')
     auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
     auth.set_access_token(access_token, access_token_secret)
     api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
@@ -21,5 +21,4 @@ def create_api():
     return api
 
 def get_storage_url():
-    return config("storage_url")
-
+    return config('storage_url')
