@@ -3,8 +3,7 @@ import requests
 import sqlite3
 import time
 import tweepy
-from config import create_api
-from config import get_storage_url
+from decouple import config
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
@@ -24,12 +23,12 @@ class DbData():
         self.lastTweetTimestamp = lastTweetTimestamp
         self.tweetToReplyId = tweetToReplyId
 
-class FrankTvBot(tweepy.StreamListener):    
+class FrankTvBot(tweepy.StreamListener):
     def __init__(self, api):
         logger.info(f"\n--- Initializing app at {self.get_current_time()} ---\n")
         self.api = api
         self.me = api.me()
-        self.timeToNextSerie = 60 * 60 * 8 - 6   # 7hs
+        self.timeToNextSerie = 60 * 60 * 7 - 6   # 7hs
         self.timeToSameSerie = 60
         self.data = None
         self.dbData = DbData(1, 0, 0)
@@ -76,7 +75,7 @@ class FrankTvBot(tweepy.StreamListener):
 
     def get_storage(self):
         try:
-            url = get_storage_url()
+            url = config('storage_url')
             response = requests.get(url)
             response.raise_for_status()
             return response.json()
@@ -90,6 +89,9 @@ class FrankTvBot(tweepy.StreamListener):
         if self.currentTweet.isTheFirstOne == True:
             remains = self.dbData.lastTweetTimestamp + self.timeToNextSerie - currentTimestamp
         else:
+            if self.dbData.tweetToReplyId == 0:
+                logger.info(f"--- Next tweet is not the first one of the serie but tweet to reply id is not found on db <-----------\n")
+                return
             remains = self.dbData.lastTweetTimestamp + self.timeToSameSerie - currentTimestamp
         if remains > 0:
             logger.info(f"--- It's NOT time, sleeping {remains} seconds to post {self.currentTweet.id} ({self.get_current_time()}) ---")
@@ -129,13 +131,18 @@ class FrankTvBot(tweepy.StreamListener):
 
     def on_status(self, tweet):
         try:
+            if tweet.user.id != self.me.id:  #1384308750610227200
+                time.sleep(0.2)
+                return
             tweet_id = tweet.id
             text = self.api.get_status(tweet_id).text
             logger.info(f"Analyzing {text}")
-            if tweet.user.id != self.me.id or 'RT @FrankSuarezTv:' in text:  #1384308750610227200
+            if 'RT @FrankSuarezTv:' in text:
+                time.sleep(0.2)
                 return
             currentTweet = self.search_tweet(text)
             if currentTweet is None or self.currentTweet.text != currentTweet.text:
+                time.sleep(1)
                 return
             logger.info(f"\n\n\n\n\n\n--- Sending tweet next to {text} ---")
             if currentTweet.isTheLastOne == True:
@@ -145,6 +152,7 @@ class FrankTvBot(tweepy.StreamListener):
             else:
                 self.update_db(tweet_id)
                 self.launch_or_sleep()
+            time.sleep(1)
         except Exception as e:
             logger.exception(f"\n--- On status error: {e} ---")
 
@@ -176,13 +184,25 @@ class FrankTvBot(tweepy.StreamListener):
 
 def main():
     keywords = ['FrankSuarezTv']
+    consumer_key = config('api_public')
+    consumer_secret = config('api_secret')
+    access_token = config('token_public')
+    access_token_secret = config('token_secret')
     try:
-        api = create_api()
+        auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
+        auth.set_access_token(access_token, access_token_secret)
+        api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
+        try:
+            api.verify_credentials()
+        except Exception as e:
+            logger.error("--- Error creating API", exc_info=True)
+            raise e
+        logger.info("--- API created")
         tweets_listener = FrankTvBot(api)
         stream = tweepy.Stream(api.auth, tweets_listener)
         stream.filter(track=keywords, languages=['es', 'en'])
     except Exception as e:
-        logger.exception("App failed:", e)
+        logger.exception("--- App failed:", e)
         time.sleep(60)
         main()
         return
