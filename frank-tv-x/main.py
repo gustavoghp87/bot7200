@@ -89,7 +89,7 @@ class FrankTvBot(tweepy.StreamListener):
         if self.currentTweet.isTheFirstOne == True:
             remains = self.dbData.lastTweetTimestamp + self.timeToNextSerie - currentTimestamp
         else:
-            if self.dbData.tweetToReplyId == 0:
+            if self.dbData.tweetToReplyId == 0 or self.dbData.tweetToReplyId == "0":
                 logger.info(f"--- Next tweet is not the first one of the serie but tweet to reply id is not found on db <-----------\n")
                 return
             remains = self.dbData.lastTweetTimestamp + self.timeToSameSerie - currentTimestamp
@@ -100,7 +100,7 @@ class FrankTvBot(tweepy.StreamListener):
             return
         tweet = f"{self.currentTweet.text} https://twitter.com/FrankSuarezTv/status/{self.currentTweet.videoIdTW}/video/1"
         logger.info(f"--- Sending tweet number {self.currentTweet.id}, {tweet} ({self.get_current_time()}) ---")
-        if self.currentTweet.isTheFirstOne == True or self.dbData.tweetToReplyId == 0:
+        if self.currentTweet.isTheFirstOne == True:
             logger.info("--- Head tweet ---")
             self.api.update_status(tweet)
         else:
@@ -144,7 +144,7 @@ class FrankTvBot(tweepy.StreamListener):
             if currentTweet is None or self.currentTweet.text != currentTweet.text:
                 time.sleep(1)
                 return
-            logger.info(f"\n\n\n\n\n\n--- Sending tweet next to {text} ---")
+            logger.info(f"\n--- Sending tweet next to {text} ---")
             if currentTweet.isTheLastOne == True:
                 self.send_complete_video_tweet(tweet_id)
                 self.update_db(0)
@@ -199,13 +199,10 @@ def main():
             raise e
         logger.info("--- API created")
         tweets_listener = FrankTvBot(api)
-        stream = tweepy.Stream(api.auth, tweets_listener)
+        stream = tweepy.Stream(api.auth, tweets_listener, is_async=True)
         stream.filter(track=keywords, languages=['es', 'en'])
     except Exception as e:
-        logger.exception("--- App failed:", e)
-        time.sleep(60)
-        main()
-        return
+        logger.error("\n--- App failed ---\n")
 
 if __name__ == "__main__":
     main()
