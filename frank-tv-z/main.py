@@ -86,7 +86,10 @@ class FrankTvBot(tweepy.StreamListener):
     def launch_or_sleep(self):
         self.update_params()
         currentTimestamp = self.get_current_timestamp()
-        remains = self.dbData.lastTweetTimestamp + self.timeToNextSerie - currentTimestamp
+        if self.currentTweet.isTheFirstOne == True:
+            remains = self.dbData.lastTweetTimestamp + self.timeToNextSerie - currentTimestamp
+        else:
+            remains = self.dbData.lastTweetTimestamp + self.timeToSameSerie - currentTimestamp
         if remains > 0:
             logger.info(f"--- It's NOT time, sleeping {remains} seconds to post {self.currentTweet.id} ({self.get_current_time()}) ---")
             time.sleep(remains)

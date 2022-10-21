@@ -16,4 +16,4 @@ docker stop frank-x && docker rm frank-x && docker rmi frank-x-image
 docker build -t frank-x-image /home/ubuntu/bot7200/frank-tv-x
 docker run -d --restart always --name frank-x -v ~/bot7200/frank-tv-x/:/bots/ frank-x-image
 
-docker stop frank-x && docker rm frank-x && docker rmi frank-x-image && docker build -t frank-x-image /home/ubuntu/bot7200/frank-tv-x && docker run -d --restart always --name frank-x -v ~/bot7200/frank-tv-x/:/bots/ frank-x-image
+docker stop frank-z && docker rm frank-z && docker rmi frank-z-image && docker build -t frank-z-image /home/ubuntu/bot7200/frank-tv-z && docker run -d --restart always --name frank-z -v ~/bot7200/frank-tv-z/:/bots/ frank-z-image
