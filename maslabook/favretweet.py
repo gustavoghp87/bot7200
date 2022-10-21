@@ -1,11 +1,11 @@
-from logging import log
-import requests
-import tweepy
-import logging
 from config import create_api
-import time
-import json
 from decouple import config
+from logging import log
+import json
+import logging
+import requests
+import time
+import tweepy
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
