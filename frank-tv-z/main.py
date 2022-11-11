@@ -28,8 +28,8 @@ class FrankTvBot(tweepy.StreamListener):
         logger.info(f"--- Initializing app at {self.get_current_time()} ---")
         self.api = api
         self.me = api.me()
-        self.timeToNextSerie = 60 * 60 * 7 - 6   # 7hs
-        self.timeToSameSerie = 60
+        self.timeToNextSerie = 60 * 60 * 19 - 6   # 19hs
+        self.timeToSameSerie = 100
         self.data = None
         self.dbData = DbData(1, 0, 0)
         self.currentTweet = Tweet(1, "", 1, 1, True, True)
@@ -199,7 +199,7 @@ def main():
             raise e
         logger.info("--- API created")
         tweets_listener = FrankTvBot(api)
-        stream = tweepy.Stream(api.auth, tweets_listener, is_async=True)
+        tweepy.Stream(api.auth, tweets_listener, is_async=True)
     except Exception as e:
         logger.error(f"--- App failed: {e} ---")
 
