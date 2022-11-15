@@ -1,6 +1,5 @@
 from config import create_api
 from decouple import config
-from logging import log
 import base64
 import json
 import logging
@@ -19,7 +18,7 @@ class FavRetweetListener(tweepy.StreamListener):
         starttime = time.time()
 
         while True:
-            print(f"tick, son las {time.asctime(time.localtime(time.time()))}")
+            logger.info(f"tick, son las {time.asctime(time.localtime(time.time()))}")
             
             url = 'https://maslabook.herokuapp.com/api/bot'
             payload = {'password': config('COUNTER_PW')}
@@ -29,7 +28,7 @@ class FavRetweetListener(tweepy.StreamListener):
             response_json = response.json()
             post_text = response_json["post_text"]
             file = response_json["file"]
-            print(response_json)
+            logger.info(response_json)
 
             if file is None:
                 self.api.update_status(post_text)
@@ -37,9 +36,9 @@ class FavRetweetListener(tweepy.StreamListener):
                 try:
                     self.api.update_with_media(base64.b64decode(file), status=post_text)
                 except Exception as e:
-                    print(e)
+                    logger.info(e)
             
-            #print("Yo sigo:", friends_names)
+            #logger.info("Yo sigo:", friends_names)
             friends_names = []
             for friend in api.friends():
                 friends_names.append(friend.screen_name)
@@ -51,7 +50,7 @@ class FavRetweetListener(tweepy.StreamListener):
                             api.create_mute(follower.screen_name)
                             print (f"Siguiendo a {follower.screen_name}, silenciado")
                     except:
-                        print("\n")
+                        logger.info("\n")
             
             loop = 7200*3
             time.sleep(loop - ((time.time() - starttime) % loop))
@@ -66,7 +65,7 @@ def main():
         tweets_listener = FavRetweetListener(api)
         tweepy.Stream(api.auth, tweets_listener)
     except Exception as e:
-        print("Error API:", e, "\n\n\n\n")
+        logger.info("Error API:", e, "\n\n\n\n")
         time.sleep(60*30)
         main()
 
