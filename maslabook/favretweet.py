@@ -1,6 +1,7 @@
 from config import create_api
 from decouple import config
 from logging import log
+import base64
 import json
 import logging
 import requests
@@ -23,21 +24,29 @@ class FavRetweetListener(tweepy.StreamListener):
             url = 'https://maslabook.herokuapp.com/api/bot'
             payload = {'password': config('COUNTER_PW')}
             headers = {'content-type': 'application/json'}
-            tuit = requests.post(url, data=json.dumps(payload), headers=headers)
-
-            print(tuit.json())
-            self.api.update_status(tuit.json())
+            response = requests.post(url, data=json.dumps(payload), headers=headers)
             
+            response_json = response.json()
+            post_text = response_json["post_text"]
+            file = response_json["file"]
+            print(response_json)
+
+            if file is None:
+                self.api.update_status(post_text)
+            else:
+                try:
+                    self.api.update_with_media(base64.b64decode(file), status=post_text)
+                except Exception as e:
+                    print(e)
+            
+            #print("Yo sigo:", friends_names)
             friends_names = []
             for friend in api.friends():
                 friends_names.append(friend.screen_name)
-
-            #print("Yo sigo:", friends_names)
-
             for follower in api.followers():
                 if follower.screen_name not in friends_names:
                     try:
-                        if follower.screen_name != carlosmaslaton:
+                        if follower.screen_name != 'carlosmaslaton':
                             follower.follow()
                             api.create_mute(follower.screen_name)
                             print (f"Siguiendo a {follower.screen_name}, silenciado")
