@@ -3,6 +3,7 @@ charset-normalizer==2.1.1
 dnspython==2.2.1
 idna==3.4
 oauthlib==3.2.2
+Pillow==9.3.0
 pymongo==4.3.2
 PySocks==1.7.1
 python-decouple==3.6
