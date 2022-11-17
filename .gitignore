@@ -1,9 +1,0 @@
-__pycache__
-.env
-pyvenv.cfg
-storage.json
-
-venv/
-.vscode/
-Scripts/
-Lib/
