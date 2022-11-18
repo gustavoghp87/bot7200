@@ -5,6 +5,8 @@ Running on Docker in Raspberry Pi
 
 ################################################################################
 
+docker run --rm -it -p 4444:4444 -p 5900:5900 -p 7900:7900 --shm-size 2g seleniarm/standalone-chromium:latest
+
 docker stop maslabook && docker rm maslabook && docker rmi maslabook-i && docker build -t maslabook-i /home/ubuntu/bot7200/maslabook/ && docker run -d --restart always --name maslabook maslabook-i
 
 ################################################################################
