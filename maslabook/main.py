@@ -1,6 +1,7 @@
 from decouple import config
-import base64
-import io
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 import json
 import logging
 import requests
@@ -13,9 +14,7 @@ logger = logging.getLogger()
 class FavRetweetListener(tweepy.StreamListener):
 
     def __init__(self, api):
-        access_key = config("API_FLASH_ACCESS_TOKEN")
         starttime = time.time()
-
         while True:
             logger.info(f"tick, son las {time.asctime(time.localtime(time.time()))}")
             url = 'https://maslabook.herokuapp.com/api/bot'
@@ -29,17 +28,12 @@ class FavRetweetListener(tweepy.StreamListener):
                 logger.info(response_json)
                 if "network" in response_json and response_json["network"] == 'fb':
                     print("FB")
-                    try:
-                        url_final = f"https://api.apiflash.com/v1/urltoimage?access_key={access_key}&url={response_json['url']}&format=jpeg&scroll_page=true&response_type=image&css=%23headerArea%7Bdisplay%3A%20none%3B%7D"
-                        r = requests.get(url_final, stream=True)
-                        with open('image.jpg', 'wb') as file:
-                            for chunk in r:
-                                file.write(chunk)
-                        api.update_with_media("image.jpg", status=post_text)
-                        #api.update_with_media(base64.b64decode(response_json["file"]), status=post_text)
-                    except Exception as ex:
-                        print(ex)
+                    image = self.get_image(response_json['url'])
+                    if image is None:
+                        print("No image") ###################3
                         api.update_status(post_text)
+                    else:
+                        api.update_with_media("image.jpg", status=post_text)
                 else:
                     print("TW")
                     api.update_status(post_text)
@@ -63,6 +57,38 @@ class FavRetweetListener(tweepy.StreamListener):
             loop = 7200*3
             time.sleep(loop - ((time.time() - starttime) % loop))
 
+    def get_image(self, url):
+        print("Getting image")
+        options = webdriver.ChromeOptions()
+        options.add_argument('--headless')
+        options.add_argument('--no-sandbox')
+        driver = webdriver.Chrome(options=options)
+        try:
+            driver.get(url)
+            search = driver.find_element(By.NAME, 'q')
+            search.send_keys('Python')
+            search.send_keys(Keys.RETURN)
+            time.sleep(3)
+            driver.save_screenshot('image.jpg')
+            return True
+        except Exception as e:
+            print(e)
+            return False
+        finally:
+            driver.close()
+            driver.quit()
+        # try:
+        #     url_final = f"https://api.apiflash.com/v1/urltoimage?access_key={access_key}&url={response_json['url']}&format=jpeg&scroll_page=true&response_type=image&css=%23headerArea%7Bdisplay%3A%20none%3B%7D"
+        #     r = requests.get(url_final, stream=True)
+        #     with open('image.jpg', 'wb') as file:
+        #         for chunk in r:
+        #             file.write(chunk)
+        #     api.update_with_media("image.jpg", status=post_text)
+        #     #api.update_with_media(base64.b64decode(response_json["file"]), status=post_text)
+        # except Exception as ex:
+        #     print(ex)
+        #     api.update_status(post_text)
+
     def on_error(self, status):
         logger.error(status)
 
@@ -71,7 +97,6 @@ def create_api():
     consumer_secret = config("api_secret")
     access_token = config("token_public")
     access_token_secret = config("token_secret")
-
     auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
     auth.set_access_token(access_token, access_token_secret)
     api = tweepy.API(auth, wait_on_rate_limit=True, 
