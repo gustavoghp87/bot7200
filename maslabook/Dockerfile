@@ -1,10 +1,12 @@
-FROM alpine:3.10
+#FROM alpine:3.10
+# RUN apk add --no-cache python3-dev \
+#     && pip3 install --upgrade pip
+FROM ubuntu:latest
 
-RUN apk add libffi-dev
-# (for cffi library)
-
-RUN apk add --no-cache python3-dev \
-    && pip3 install --upgrade pip
+RUN set -xe \
+    && apt-get update \
+    && apt-get install python3-pip -y
+RUN pip install --upgrade pip
 
 COPY main.py /bots/
 COPY requirements.txt /tmp

@@ -1,6 +1,5 @@
 from decouple import config
 from selenium import webdriver
-from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 import json
 import logging
 import requests
@@ -58,18 +57,25 @@ class FavRetweetListener(tweepy.StreamListener):
 
     def get_image(self, url):
         print("Getting image")
-        options = webdriver.ChromeOptions()
+        options = webdriver.FirefoxOptions()
         options.add_argument('--headless')
         options.add_argument('--no-sandbox')
         #driver = webdriver.Chrome(options=options)
-        driver = webdriver.Remote("http://127.0.0.1:4444/wd/hub", DesiredCapabilities.CHROME, options=options)
-        #driver = webdriver.Remote("http://selenium:4444/wd/hub", DesiredCapabilities.FIREFOX)
-        #driver = webdriver.Remote("http://127.0.0.1:4444/wd/hub", options=options)
+        driver = webdriver.Remote("http://127.0.0.1:4444/wd/hub", options=options)
         try:
             driver.get(url)
-            time.sleep(3)
-            #driver.assertIn(driver.title, 'Home')
-            driver.save_screenshot('image.jpg')
+            time.sleep(7)
+            print(driver.find_element('id', '#loginform'))
+            if driver.find_element('id', '#loginform'):
+                username = driver.find_element('id', 'email')
+                password = driver.find_element('id', 'pass')
+                submit   = driver.find_element('id', 'loginbutton')
+                username.send_keys(config("FB_USERNAME"))
+                password.send_keys(config("FB_PASSWORD"))
+                submit.click()
+                #driver.get(url)
+                time.sleep(4)
+            driver.save_screenshot('image.png')
             return True
         except Exception as e:
             print(e)
