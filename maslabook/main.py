@@ -26,12 +26,17 @@ class FavRetweetListener(tweepy.StreamListener):
                 logger.info(response_json)
                 if "network" in response_json and response_json["network"] == 'fb':
                     print("FB")
-                    image = self.get_image(response_json['url'])
-                    if image is None:
-                        print("No image") ###################3
-                        api.update_status(post_text)
+                    hasImage = self.get_image(response_json['url'])
+                    if hasImage is True:
+                        api.update_with_media("image.png", status=post_text)
                     else:
-                        api.update_with_media("image.jpg", status=post_text)
+                        print("No image") ###################3
+                        
+                        
+                        
+                        
+                        
+                        #api.update_status(post_text)
                 else:
                     print("TW")
                     api.update_status(post_text)
@@ -61,8 +66,8 @@ class FavRetweetListener(tweepy.StreamListener):
         options.add_argument('--headless')
         options.add_argument('--no-sandbox')
         #driver = webdriver.Chrome(options=options)
-        driver = webdriver.Remote("http://127.0.0.1:4444/wd/hub", options=options)
         try:
+            driver = webdriver.Remote("http://127.0.0.1:4444/wd/hub", options=options)
             driver.get(url)
             time.sleep(7)
             print(driver.find_element('id', '#loginform'))
