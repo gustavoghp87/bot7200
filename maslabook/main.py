@@ -1,4 +1,5 @@
 from decouple import config
+from PIL import Image
 from requests.adapters import HTTPAdapter
 from selenium import webdriver
 from urllib3.util import Retry
@@ -35,19 +36,13 @@ class FavRetweetListener(tweepy.StreamListener):
                     if hasImage is True:
                         api.update_with_media(image, status=post_text)
                     else:
-                        logger.info("No image") ###################3
-                        
-                        
-                        
-                        
-                        
-                        #api.update_status(post_text)
+                        logger.info("FB: No image")
+                        api.update_status(post_text)
                 else:
                     logger.info("TW")
                     api.update_status(post_text)
             except Exception as e:
                 logger.info(e)
-
             #logger.info("My friends:", friends_names)
             friends_names = []
             for friend in api.friends():
@@ -61,7 +56,6 @@ class FavRetweetListener(tweepy.StreamListener):
                             logger.info(f"Siguiendo a {follower.screen_name}, silenciado")
                     except:
                         logger.info("\n")
-            
             loop = 7200*3
             time.sleep(loop - ((time.time() - starttime) % loop))
 
@@ -77,7 +71,7 @@ class FavRetweetListener(tweepy.StreamListener):
             driver.get(url)
             time.sleep(7)
             try:
-                logger.info(driver.find_element('id', '#loginform'))
+                logger.info(driver.find_element('id', 'loginform'))
                 username = driver.find_element('id', 'email')
                 password = driver.find_element('id', 'pass')
                 submit   = driver.find_element('id', 'loginbutton')
@@ -88,6 +82,26 @@ class FavRetweetListener(tweepy.StreamListener):
                 time.sleep(4)
             except:
                 logger.info("No login page")
+            try:
+                driver.execute_script("document.getElementById('headerArea').style.display = 'none';")
+            except:
+                logger.info("No login popup")
+            try:
+                element = driver.find_element('id', 'contentArea')
+                location = element.location
+                size = element.size
+                x = location['x']
+                y = location['y']
+                w = size['width']
+                h = size['height']
+                width = x + w
+                height = y + h
+                im = Image.open(image)
+                im = im.crop((int(x), int(y), int(width), int(height)))
+                im.save(image)
+                logger.info("Cropped image")
+            except Exception as exc:
+                logger.info(exc)
             driver.save_screenshot(image)
             return True
         except Exception as e:

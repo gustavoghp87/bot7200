@@ -8,6 +8,7 @@ h11==0.14.0
 idna==3.4
 oauthlib==3.2.2
 outcome==1.2.0
+Pillow==9.3.0
 pycparser==2.21
 PySocks==1.7.1
 python-decouple==3.6
