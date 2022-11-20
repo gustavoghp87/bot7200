@@ -85,6 +85,7 @@ class FavRetweetListener(tweepy.StreamListener):
             set_display_none(driver, "#headerArea", "No login popup by #headerArea")
             set_display_none(driver, "#mount_0_0_Jb > div > div:nth-child(1) > div > div:nth-child(3)", "No element found (1)")
             set_display_none(driver, "#mount_0_0_Jb > div > div:nth-child(1) > div > div.x9f619.x1n2onr6.x1ja2u2z > div > div > div > div.x78zum5.xdt5ytf.x10cihs4.x1t2pt76.x1n2onr6.x1ja2u2z > div:nth-child(2)", "No element found (2)")
+            driver.save_screenshot(image)
             element = driver.find_element('css selector', 'body')
             try:
                 element = driver.find_element('id', 'contentArea')
@@ -109,7 +110,6 @@ class FavRetweetListener(tweepy.StreamListener):
                 logger.info("Cropped image")
             except Exception as exc:
                 logger.info(exc)
-            driver.save_screenshot(image)
             return True
         except Exception as e:
             logger.info(e)
