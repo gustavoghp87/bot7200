@@ -61,7 +61,7 @@ class FavRetweetListener(tweepy.StreamListener):
 
     def get_image(self, url):
         logger.info("Getting image")
-        test_selenium_server_available()
+        #test_selenium_server_available()
         options = webdriver.FirefoxOptions()
         options.add_argument('--headless')
         options.add_argument('--no-sandbox')
@@ -82,34 +82,32 @@ class FavRetweetListener(tweepy.StreamListener):
                 time.sleep(4)
             except:
                 logger.info("No login page")
-            set_display_none(driver, "#headerArea", "No login popup by #headerArea")
-            set_display_none(driver, "#mount_0_0_Jb > div > div:nth-child(1) > div > div:nth-child(3)", "No element found (1)")
-            set_display_none(driver, "#mount_0_0_Jb > div > div:nth-child(1) > div > div.x9f619.x1n2onr6.x1ja2u2z > div > div > div > div.x78zum5.xdt5ytf.x10cihs4.x1t2pt76.x1n2onr6.x1ja2u2z > div:nth-child(2)", "No element found (2)")
-            driver.save_screenshot(image)
-            element = driver.find_element('css selector', 'body')
+            #header form
+            set_display_none(driver, "css", "#headerArea", "No login popup by #headerArea")
+            set_display_none(driver, "xpath", "div[role = 'banner']", "No element found (1)")
+            #login popup
+            set_display_none(driver, "xpath", "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[2]", "No element found (2)")
             try:
-                element = driver.find_element('id', 'contentArea')
+                driver.find_element('xpath', "//*[contains(text(), 'See more')]").click()
             except:
-                logger.info("No contentArea found")
-                try:
-                    element = driver.find_element("#mount_0_0_Jb > div > div:nth-child(1) > div > div.x9f619.x1n2onr6.x1ja2u2z > div > div > div > div.x78zum5.xdt5ytf.x10cihs4.x1t2pt76.x1n2onr6.x1ja2u2z > div:nth-child(1)")
-                except:
-                    logger.info("No contentArea by div child found")
-            try:
-                location = element.location
-                size = element.size
-                x = location['x']
-                y = location['y']
-                w = size['width']
-                h = size['height']
-                width = x + w
-                height = y + h
-                im = Image.open(image)
-                im = im.crop((int(x), int(y), int(width), int(height)))
-                im.save(image)
-                logger.info("Cropped image")
-            except Exception as exc:
-                logger.info(exc)
+                logger.info("No See more button found")
+            driver.save_screenshot(image)
+            # element = driver.find_element('css selector', 'body')
+            # try:
+            #     location = element.location
+            #     size = element.size
+            #     x = location['x']
+            #     y = location['y']
+            #     w = size['width']
+            #     h = size['height']
+            #     width = x + w
+            #     height = y + h
+            #     im = Image.open(image)
+            #     im = im.crop((int(x), int(y), int(width), int(height)))
+            #     im.save(image)
+            #     logger.info("Cropped image")
+            # except Exception as exc:
+            #     logger.info(exc)
             return True
         except Exception as e:
             logger.info(e)
@@ -147,19 +145,30 @@ def create_api():
     logger.info("API created")
     return api
 
-def test_selenium_server_available():
-    session = requests.Session()
-    retry = Retry(connect=5, backoff_factor=0.5)
-    adapter = HTTPAdapter(max_retries=retry)
-    session.mount('http://', adapter)
-    session.mount('https://', adapter)
-    session.get(standalone)
+# def test_selenium_server_available():
+#     session = requests.Session()
+#     retry = Retry(connect=5, backoff_factor=0.5)
+#     adapter = HTTPAdapter(max_retries=retry)
+#     session.mount('http://', adapter)
+#     session.mount('https://', adapter)
+#     session.get(standalone)
 
-def set_display_none(driver, selector, error):
+def set_display_none(driver, type, selector, error):
     try:
-        driver.execute_script(f'document.querySelector({selector}).style.display = "none";')
+        if type == "css":
+            driver.execute_script(f'document.querySelector({selector}).style.display = "none";')
+        elif type == "xpath":
+            driver.execute_script(f'document.evaluate({selector}, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.style.display = "none";')
     except:
         logger.info(error)
+    # ID = "id"
+    # NAME = "name"
+    # XPATH = "xpath"
+    # LINK_TEXT = "link text"
+    # PARTIAL_LINK_TEXT = "partial link text"
+    # TAG_NAME = "tag name"
+    # CLASS_NAME = "class name"
+    # CSS_SELECTOR = "css selector"
 
 def main():
     try:
