@@ -12,14 +12,14 @@ import tweepy
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
 image = 'image.png'
-standalone = 'http://127.0.0.1:4444/wd/hub'
+standalone = 'http://172.17.0.4:4444/wd/hub'
 
 class FavRetweetListener(tweepy.StreamListener):
 
     def __init__(self, api):
         starttime = time.time()
         while True:
-            logger.info(f"tick, son las {time.asctime(time.localtime(time.time()))}")
+            logger.info(f"tick, it's {time.asctime(time.localtime(time.time()))}")
             url = 'https://maslabook.herokuapp.com/api/bot'
             #url = 'http://localhost:8005/api/bot'
             payload = {'password': config('COUNTER_PW')}
@@ -30,12 +30,12 @@ class FavRetweetListener(tweepy.StreamListener):
                 post_text = response_json["post_text"]
                 logger.info(response_json)
                 if "network" in response_json and response_json["network"] == 'fb':
-                    print("FB")
+                    logger.info("FB")
                     hasImage = self.get_image(response_json['url'])
                     if hasImage is True:
                         api.update_with_media(image, status=post_text)
                     else:
-                        print("No image") ###################3
+                        logger.info("No image") ###################3
                         
                         
                         
@@ -43,10 +43,10 @@ class FavRetweetListener(tweepy.StreamListener):
                         
                         #api.update_status(post_text)
                 else:
-                    print("TW")
+                    logger.info("TW")
                     api.update_status(post_text)
             except Exception as e:
-                print(e)
+                logger.info(e)
 
             #logger.info("My friends:", friends_names)
             friends_names = []
@@ -58,7 +58,7 @@ class FavRetweetListener(tweepy.StreamListener):
                         if follower.screen_name != 'carlosmaslaton':
                             follower.follow()
                             api.create_mute(follower.screen_name)
-                            print (f"Siguiendo a {follower.screen_name}, silenciado")
+                            logger.info(f"Siguiendo a {follower.screen_name}, silenciado")
                     except:
                         logger.info("\n")
             
@@ -66,7 +66,7 @@ class FavRetweetListener(tweepy.StreamListener):
             time.sleep(loop - ((time.time() - starttime) % loop))
 
     def get_image(self, url):
-        print("Getting image")
+        logger.info("Getting image")
         test_selenium_server_available()
         options = webdriver.FirefoxOptions()
         options.add_argument('--headless')
@@ -76,7 +76,7 @@ class FavRetweetListener(tweepy.StreamListener):
         try:
             driver.get(url)
             time.sleep(7)
-            print(driver.find_element('id', '#loginform'))
+            logger.info(driver.find_element('id', '#loginform'))
             if driver.find_element('id', '#loginform'):
                 username = driver.find_element('id', 'email')
                 password = driver.find_element('id', 'pass')
@@ -89,7 +89,7 @@ class FavRetweetListener(tweepy.StreamListener):
             driver.save_screenshot(image)
             return True
         except Exception as e:
-            print(e)
+            logger.info(e)
             return False
         finally:
             driver.quit()
@@ -102,7 +102,7 @@ class FavRetweetListener(tweepy.StreamListener):
         #     api.update_with_media("image.jpg", status=post_text)
         #     #api.update_with_media(base64.b64decode(response_json["file"]), status=post_text)
         # except Exception as ex:
-        #     print(ex)
+        #     logger.info(ex)
         #     api.update_status(post_text)
 
     def on_error(self, status):
