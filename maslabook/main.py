@@ -76,8 +76,8 @@ class FavRetweetListener(tweepy.StreamListener):
         try:
             driver.get(url)
             time.sleep(7)
-            logger.info(driver.find_element('id', '#loginform'))
-            if driver.find_element('id', '#loginform'):
+            try:
+                logger.info(driver.find_element('id', '#loginform'))
                 username = driver.find_element('id', 'email')
                 password = driver.find_element('id', 'pass')
                 submit   = driver.find_element('id', 'loginbutton')
@@ -86,6 +86,8 @@ class FavRetweetListener(tweepy.StreamListener):
                 submit.click()
                 #driver.get(url)
                 time.sleep(4)
+            except:
+                logger.info("No login page")
             driver.save_screenshot(image)
             return True
         except Exception as e:
