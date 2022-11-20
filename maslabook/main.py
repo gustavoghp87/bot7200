@@ -1,13 +1,18 @@
 from decouple import config
+from requests.adapters import HTTPAdapter
 from selenium import webdriver
+from urllib3.util import Retry
 import json
 import logging
+import requests
 import requests
 import time
 import tweepy
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
+image = 'image.png'
+standalone = 'http://127.0.0.1:4444/wd/hub'
 
 class FavRetweetListener(tweepy.StreamListener):
 
@@ -28,7 +33,7 @@ class FavRetweetListener(tweepy.StreamListener):
                     print("FB")
                     hasImage = self.get_image(response_json['url'])
                     if hasImage is True:
-                        api.update_with_media("image.png", status=post_text)
+                        api.update_with_media(image, status=post_text)
                     else:
                         print("No image") ###################3
                         
@@ -62,12 +67,13 @@ class FavRetweetListener(tweepy.StreamListener):
 
     def get_image(self, url):
         print("Getting image")
+        test_selenium_server_available()
         options = webdriver.FirefoxOptions()
         options.add_argument('--headless')
         options.add_argument('--no-sandbox')
         #driver = webdriver.Chrome(options=options)
+        driver = webdriver.Remote(standalone, options=options)
         try:
-            driver = webdriver.Remote("http://127.0.0.1:4444/wd/hub", options=options)
             driver.get(url)
             time.sleep(7)
             print(driver.find_element('id', '#loginform'))
@@ -80,7 +86,7 @@ class FavRetweetListener(tweepy.StreamListener):
                 submit.click()
                 #driver.get(url)
                 time.sleep(4)
-            driver.save_screenshot('image.png')
+            driver.save_screenshot(image)
             return True
         except Exception as e:
             print(e)
@@ -118,6 +124,14 @@ def create_api():
         raise e
     logger.info("API created")
     return api
+
+def test_selenium_server_available():
+    session = requests.Session()
+    retry = Retry(connect=5, backoff_factor=0.5)
+    adapter = HTTPAdapter(max_retries=retry)
+    session.mount('http://', adapter)
+    session.mount('https://', adapter)
+    session.get(standalone)
 
 def main():
     try:
