@@ -69,7 +69,7 @@ class FavRetweetListener(tweepy.StreamListener):
         try:
             driver.get(url)
             time.sleep(7)
-            # divs by role: image "main", text "complementary"
+            # divs by role: image "main", text "complementary", all "feed"
             try:
                 logger.info(driver.find_element('css selector', '#loginform'))
                 username = driver.find_element('css selector', '#email')
@@ -90,22 +90,22 @@ class FavRetweetListener(tweepy.StreamListener):
             except:
                 logger.info("No See more button found")
             driver.save_screenshot(image)
-            # element = driver.find_element('css selector', 'body')
-            # try:
-            #     location = element.location
-            #     size = element.size
-            #     x = location['x']
-            #     y = location['y']
-            #     w = size['width']
-            #     h = size['height']
-            #     width = x + w
-            #     height = y + h
-            #     im = Image.open(image)
-            #     im = im.crop((int(x), int(y), int(width), int(height)))
-            #     im.save(image)
-            #     logger.info("Cropped image")
-            # except Exception as exc:
-            #     logger.info(exc)
+            try:
+                feed = driver.find_element('css selector', 'div[role="feed"]')
+                location = feed.location
+                size = feed.size
+                x = location['x']
+                y = location['y']
+                w = size['width']
+                h = size['height']
+                width = x + w
+                height = y + h
+                im = Image.open(image)
+                im = im.crop((int(x), int(y), int(width), int(height)))
+                im.save(image)
+                logger.info("Cropped image")
+            except Exception as exc:
+                logger.info(exc)
             return True
         except Exception as e:
             logger.info(e)
