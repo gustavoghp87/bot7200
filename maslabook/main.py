@@ -82,12 +82,19 @@ class FavRetweetListener(tweepy.StreamListener):
                 time.sleep(4)
             except:
                 logger.info("No login page")
-            try:
-                driver.execute_script("document.getElementById('headerArea').style.display = 'none';")
-            except:
-                logger.info("No login popup")
+            set_display_none(driver, "#headerArea", "No login popup by #headerArea")
+            set_display_none(driver, "#mount_0_0_Jb > div > div:nth-child(1) > div > div:nth-child(3)", "No element found (1)")
+            set_display_none(driver, "#mount_0_0_Jb > div > div:nth-child(1) > div > div.x9f619.x1n2onr6.x1ja2u2z > div > div > div > div.x78zum5.xdt5ytf.x10cihs4.x1t2pt76.x1n2onr6.x1ja2u2z > div:nth-child(2)", "No element found (2)")
+            element = driver.find_element('css selector', 'body')
             try:
                 element = driver.find_element('id', 'contentArea')
+            except:
+                logger.info("No contentArea found")
+                try:
+                    element = driver.find_element("#mount_0_0_Jb > div > div:nth-child(1) > div > div.x9f619.x1n2onr6.x1ja2u2z > div > div > div > div.x78zum5.xdt5ytf.x10cihs4.x1t2pt76.x1n2onr6.x1ja2u2z > div:nth-child(1)")
+                except:
+                    logger.info("No contentArea by div child found")
+            try:
                 location = element.location
                 size = element.size
                 x = location['x']
@@ -120,7 +127,6 @@ class FavRetweetListener(tweepy.StreamListener):
         # except Exception as ex:
         #     logger.info(ex)
         #     api.update_status(post_text)
-
     def on_error(self, status):
         logger.error(status)
 
@@ -149,11 +155,16 @@ def test_selenium_server_available():
     session.mount('https://', adapter)
     session.get(standalone)
 
+def set_display_none(driver, selector, error):
+    try:
+        driver.execute_script(f'document.querySelector({selector}).style.display = "none";')
+    except:
+        logger.info(error)
+
 def main():
     try:
         api = create_api()
-        tweets_listener = FavRetweetListener(api)
-        tweepy.Stream(api.auth, tweets_listener)
+        FavRetweetListener(api)
     except Exception as e:
         logger.info("Error API:", e, "\n\n\n\n")
         time.sleep(60*30)
