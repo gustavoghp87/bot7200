@@ -61,32 +61,30 @@ class FavRetweetListener(tweepy.StreamListener):
 
     def get_image(self, url):
         logger.info("Getting image")
-        #test_selenium_server_available()
+        #driver = webdriver.Chrome(options=options)
         options = webdriver.FirefoxOptions()
         options.add_argument('--headless')
         options.add_argument('--no-sandbox')
-        #driver = webdriver.Chrome(options=options)
         driver = webdriver.Remote(standalone, options=options)
         try:
             driver.get(url)
             time.sleep(7)
+            # divs by role: image "main", text "complementary"
             try:
-                logger.info(driver.find_element('id', 'loginform'))
-                username = driver.find_element('id', 'email')
-                password = driver.find_element('id', 'pass')
-                submit   = driver.find_element('id', 'loginbutton')
+                logger.info(driver.find_element('css selector', '#loginform'))
+                username = driver.find_element('css selector', '#email')
+                password = driver.find_element('css selector', '#pass')
+                submit   = driver.find_element('css selector', '#loginbutton')
                 username.send_keys(config("FB_USERNAME"))
                 password.send_keys(config("FB_PASSWORD"))
                 submit.click()
-                #driver.get(url)
                 time.sleep(4)
             except:
                 logger.info("No login page")
-            #header form
-            set_display_none(driver, "css", "#headerArea", "No login popup by #headerArea")
-            set_display_none(driver, "xpath", "div[role = 'banner']", "No element found (1)")
-            #login popup
-            set_display_none(driver, "xpath", "/html/body/div[1]/div/div[1]/div/div[3]/div/div/div/div[1]/div[2]", "No element found (2)")
+            try:
+                driver.execute_script('document.getElementById("headerArea").style.display="none";')
+            except:
+                logger.info("No headerArea")
             try:
                 driver.find_element('xpath', "//*[contains(text(), 'See more')]").click()
             except:
@@ -145,22 +143,14 @@ def create_api():
     logger.info("API created")
     return api
 
-# def test_selenium_server_available():
-#     session = requests.Session()
-#     retry = Retry(connect=5, backoff_factor=0.5)
-#     adapter = HTTPAdapter(max_retries=retry)
-#     session.mount('http://', adapter)
-#     session.mount('https://', adapter)
-#     session.get(standalone)
-
-def set_display_none(driver, type, selector, error):
-    try:
-        if type == "css":
-            driver.execute_script(f'document.querySelector({selector}).style.display = "none";')
-        elif type == "xpath":
-            driver.execute_script(f'document.evaluate({selector}, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.style.display = "none";')
-    except:
-        logger.info(error)
+# def set_display_none(driver, type, selector, error):
+#     try:
+#         if type == "css":
+#             driver.execute_script(f'document.querySelector({selector}).style.display = "none";')
+#         elif type == "xpath":
+#             driver.execute_script(f'document.evaluate({selector}, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.style.display = "none";')
+#     except:
+#         logger.info(error)
     # ID = "id"
     # NAME = "name"
     # XPATH = "xpath"
