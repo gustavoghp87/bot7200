@@ -1,11 +1,8 @@
 from decouple import config
-from PIL import Image
-from requests.adapters import HTTPAdapter
+#from PIL import Image
 from selenium import webdriver
-from urllib3.util import Retry
 import json
 import logging
-import requests
 import requests
 import time
 import tweepy
@@ -84,28 +81,28 @@ class FavRetweetListener(tweepy.StreamListener):
             try:
                 driver.execute_script('document.getElementById("headerArea").style.display="none";')
             except:
-                logger.info("No headerArea")
+                logger.info("No headerArea found")
+            try:
+                driver.execute_script('document.getElementById("pagelet_bluebar").style.display="none";')
+            except:
+                logger.info("No pagelet_bluebar found")
             try:
                 driver.find_element('xpath', "//*[contains(text(), 'See more')]").click()
             except:
                 logger.info("No See more button found")
             driver.save_screenshot(image)
-            try:
-                feed = driver.find_element('css selector', 'div[role="feed"]')
-                location = feed.location
-                size = feed.size
-                x = location['x']
-                y = location['y']
-                w = size['width']
-                h = size['height']
-                width = x + w
-                height = y + h
-                im = Image.open(image)
-                im = im.crop((int(x), int(y), int(width), int(height)))
-                im.save(image)
-                logger.info("Cropped image")
-            except Exception as exc:
-                logger.info(exc)
+            # try:
+            #     feed = driver.find_element('css selector', 'div[role="feed"]')
+            #     x = feed.location['x']
+            #     y = feed.location['y']
+            #     width = x + feed.size['width']
+            #     height = y + feed.size['height']
+            #     im = Image.open(image)
+            #     im = im.crop((int(x), int(y), int(width), int(height)))
+            #     im.save(image)
+            #     logger.info("Cropped image")
+            # except Exception as exc:
+            #     logger.info(exc)
             return True
         except Exception as e:
             logger.info(e)
