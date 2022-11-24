@@ -26,6 +26,8 @@ class FavRetweetListener(tweepy.StreamListener):
                 response = requests.post(url, data=json.dumps(payload), headers=headers)
                 response_json = response.json()
                 post_text = response_json["post_text"]
+                if post_text is None or post_text.lower() == "nan":
+                    post_text = ""
                 logger.info(response_json)
                 if "network" in response_json and response_json["network"] == 'fb':
                     logger.info("FB")
@@ -37,7 +39,20 @@ class FavRetweetListener(tweepy.StreamListener):
                         api.update_status(post_text)
                 else:
                     logger.info("TW")
-                    api.update_status(post_text)
+                    if 'facebook.com' in post_text:
+                        words = post_text.split()
+                        for word in words:
+                            if 'facebook.com' not in word:
+                                continue
+                            hasImage = self.get_image(word)
+                            if hasImage is True:
+                                api.update_with_media(image, status=post_text)
+                            else:
+                                logger.info("TW: Url but no image")
+                                api.update_status(post_text)
+                    else:
+                        logger.info("TW no image")
+                        api.update_status(post_text)
             except Exception as e:
                 logger.info(e)
             #logger.info("My friends:", friends_names)
