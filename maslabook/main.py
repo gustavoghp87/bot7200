@@ -10,12 +10,12 @@ import tweepy
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
 image = 'image.png'
-standalone = 'http://172.17.0.4:4444/wd/hub'
 
 class FavRetweetListener(tweepy.StreamListener):
 
     def __init__(self, api):
         starttime = time.time()
+        self.standalone = 1
         while True:
             logger.info(f"tick, it's {time.asctime(time.localtime(time.time()))}")
             url = 'https://maslabook.herokuapp.com/api/bot'
@@ -71,14 +71,18 @@ class FavRetweetListener(tweepy.StreamListener):
             loop = 7200*3
             time.sleep(loop - ((time.time() - starttime) % loop))
 
+    def increase_standalone(self):
+        self.standalone += 1
+
     def get_image(self, url):
         logger.info("Getting image")
         #driver = webdriver.Chrome(options=options)
         options = webdriver.FirefoxOptions()
         options.add_argument('--headless')
         options.add_argument('--no-sandbox')
-        driver = webdriver.Remote(standalone, options=options)
+        firefox_url = 'http://172.17.0.' + str(self.standalone) + ':4444/wd/hub'
         try:
+            driver = webdriver.Remote(firefox_url, options=options)
             driver.get(url)
             time.sleep(7)
             # divs by role: image "main", text "complementary", all "feed"
@@ -121,7 +125,11 @@ class FavRetweetListener(tweepy.StreamListener):
             return True
         except Exception as e:
             logger.info(e)
-            return False
+            self.increase_standalone()
+            if self.standalone < 11:
+                return self.get_image(url)
+            else:
+                return False
         finally:
             driver.quit()
         # try:

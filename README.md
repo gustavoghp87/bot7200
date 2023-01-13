@@ -5,7 +5,7 @@ Running on Docker in Raspberry Pi
 
 ################################################################################
 
-docker run --rm -d -p 4444:4444 -p 5900:5900 -p 7900:7900 --shm-size 2g --name firefox seleniarm/standalone-firefox:latest
+docker run -d -p 4444:4444 -p 5900:5900 -p 7900:7900 --shm-size 2g --restart always --name firefox seleniarm/standalone-firefox:latest
 
 docker stop maslabook && docker rm maslabook && docker rmi maslabook-i && docker build -t maslabook-i /home/ubuntu/bot7200/maslabook/ && docker run -d --restart always --name maslabook maslabook-i
 
