@@ -1,6 +1,7 @@
 from decouple import config
 #from PIL import Image
 from selenium import webdriver
+from selenium.webdriver.common.by import By
 import json
 import logging
 import requests
@@ -73,6 +74,7 @@ class FavRetweetListener(tweepy.StreamListener):
 
     def increase_standalone(self):
         self.standalone += 1
+        logger.info(f"Increased standalone to {str(self.standalone)}")
 
     def get_image(self, url):
         logger.info("Getting image")
@@ -81,6 +83,7 @@ class FavRetweetListener(tweepy.StreamListener):
         options.add_argument('--headless')
         options.add_argument('--no-sandbox')
         firefox_url = 'http://172.17.0.' + str(self.standalone) + ':4444/wd/hub'
+        driver = None
         try:
             driver = webdriver.Remote(firefox_url, options=options)
             driver.get(url)
@@ -106,7 +109,13 @@ class FavRetweetListener(tweepy.StreamListener):
             except:
                 logger.info("No pagelet_bluebar found")
             try:
-                driver.find_element('xpath', "//*[contains(text(), 'See more')]").click()
+                # driver.find_element('xpath', "//*[contains(text(), 'See more')]").click()
+                # elements = driver.find_elements(By.CSS_SELECTOR, 'span')
+                # for element in elements:
+                #     if element.text == "See more of Carlos Maslatón on Facebook":
+                #         origin = element.find_element('xpath', "..").find_element('xpath', "..").find_element('xpath', "..").find_element('xpath', "..").find_element('xpath', "..").find_element('xpath', "..")
+                script = "Array.from(document.querySelectorAll('span')).forEach(x => { if(x.textContent == 'See more of Carlos Maslatón on Facebook') x.parentElement.parentElement.parentElement.parentElement.remove() });"
+                driver.execute_script(script)
             except:
                 logger.info("No See more button found")
             driver.save_screenshot(image)
@@ -131,7 +140,8 @@ class FavRetweetListener(tweepy.StreamListener):
             else:
                 return False
         finally:
-            driver.quit()
+            if driver is not None:
+                driver.quit()
         # try:
         #     url_final = f"https://api.apiflash.com/v1/urltoimage?access_key={access_key}&url={response_json['url']}&format=jpeg&scroll_page=true&response_type=image&css=%23headerArea%7Bdisplay%3A%20none%3B%7D"
         #     r = requests.get(url_final, stream=True)
