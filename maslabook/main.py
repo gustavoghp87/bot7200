@@ -138,6 +138,7 @@ class FavRetweetListener(tweepy.StreamListener):
             if self.standalone < 11:
                 return self.get_image(url)
             else:
+                self.standalone = 1
                 return False
         finally:
             if driver is not None:
